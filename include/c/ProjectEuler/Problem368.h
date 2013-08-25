@@ -1,0 +1,34 @@
+﻿#ifndef __PROJECT_EULER_PROBLEM368_H__
+#define __PROJECT_EULER_PROBLEM368_H__
+/*
+ * ProjectEuler/include/c/ProjectEuler/Problem368.h
+ *
+ * A Kempner-like series
+ * =====================
+ * Published on Sunday, 22nd January 2012, 01:00 am
+ *
+ * The  harmonic series  1 + 1 2   +  1 3   +  1 4   + ... is well known to be
+ * divergent.      If we however omit from this series every term where the
+ * denominator has a 9 in it, the series remarkably enough converges to
+ * approximately 22.9206766193.  This modified harmonic series is called the
+ * Kempner series.     Let us now consider another modified harmonic series by
+ * omitting from the harmonic series every term where the denominator has 3 or
+ * more equal consecutive digits.  One can verify that out of the first 1200
+ * terms of the harmonic series, only 20 terms will be omitted.  These 20
+ * omitted terms are:     1 111   ,  1 222   ,  1 333   ,  1 444   ,  1 555   ,
+ * 1 666   ,  1 777   ,  1 888   ,  1 999   ,  1 1000   ,  1 1110   ,    1 1111
+ * ,  1 1112   ,  1 1113   ,  1 1114   ,  1 1115   ,  1 1116   ,  1 1117   ,  1
+ * 1118    and   1 1119   .    This series converges as well.      Find the
+ * value the series converges to.  Give your answer rounded to 10 digits behind
+ * the decimal point.
+ */
+
+#  ifdef __cplusplus
+extern "C" {
+#  endif
+
+#  ifdef __cplusplus
+}
+#  endif
+
+#endif  /* __PROJECT_EULER_PROBLEM368_H__ */

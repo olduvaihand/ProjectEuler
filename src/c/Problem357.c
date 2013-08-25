@@ -1,0 +1,22 @@
+﻿/*
+ * ProjectEuler/src/c/Problem357.c
+ *
+ * Prime generating integers
+ * =========================
+ * Published on Saturday, 5th November 2011, 04:00 pm
+ *
+ * Consider the divisors of 30: 1,2,3,5,6,10,15,30.  It can be seen that for
+ * every divisor d of 30, d+30/d is prime.     Find the sum of all positive
+ * integers n not exceeding 100 000 000such that  for every divisor d of n,
+ * d+n/d is prime.
+ */
+ 
+#include <stdio.h>
+#include "ProjectEuler/ProjectEuler.h"
+#include "ProjectEuler/Problem357.h"
+
+
+int main(int argc, char** argv) {
+
+    return 0;
+}
