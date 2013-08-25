@@ -1,0 +1,211 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""Usage: project-euler start (python|c) PROBLEM_ID
+"""
+import codecs
+import getpass
+import os
+import textwrap
+
+import bs4
+from docopt import docopt
+import mako.template
+import requests
+
+
+PYTHON_MODULE = mako.template.Template(u"""\
+# ProjectEuler/src/python/problem${id}.py
+#
+# ${title}
+# ${"=" * len(title)}
+# ${publication_date}
+#
+% for line in content:
+# ${line.decode("utf-8")}
+% endfor
+
+import projecteuler as pe
+
+def main():
+    pass
+
+if __name__ == "__main__":
+    main()
+""".encode("utf-8"), strict_undefined=True, default_filters=["decode.utf8"])
+
+
+C_MODULE = mako.template.Template(u"""\
+/*
+ * ProjectEuler/src/c/Problem${id}.c
+ *
+ * ${title}
+ * ${"=" * len(title)}
+ * ${publication_date}
+ *
+% for line in content:
+ * ${line.decode("utf-8")}
+% endfor
+ */
+ 
+#include <stdio.h>
+#include "ProjectEuler/ProjectEuler.h"
+#include "ProjectEuler/Problem${id}.h"
+
+
+int main(int argc, char** argv) {
+
+    return 0;
+}""".encode("utf-8"), strict_undefined=True, default_filters=["decode.utf8"])
+
+
+C_HEADER = mako.template.Template(u"""\
+#ifndef __PROJECT_EULER_PROBLEM${id}_H__
+#define __PROJECT_EULER_PROBLEM${id}_H__
+/*
+ * ProjectEuler/include/c/ProjectEuler/Problem${id}.h
+ *
+ * ${title}
+ * ${"=" * len(title)}
+ * ${publication_date}
+ *
+% for line in content:
+ * ${line.decode("utf-8")}
+% endfor
+ */
+
+#  ifdef __cplusplus
+extern "C" {
+#  endif
+
+#  ifdef __cplusplus
+}
+#  endif
+
+#endif  /* __PROJECT_EULER_PROBLEM${id}_H__ */
+""".encode("utf-8"), strict_undefined=True, default_filters=["decode.utf8"])
+
+
+class Problem(object):
+
+    def __init__(self, id):
+        self.id = int(id)
+        self.title = None
+        self.publication_date = None
+        self.content = None
+
+    def get(self):
+        html = self._fetch_problem()
+        self._parse_problem(html)
+
+    def _fetch_problem(self):
+        try:
+            resp = requests.get(
+                "http://projecteuler.net/problem=%d" % (self.id,),
+            )
+        except requests.exceptions.HTTPError as err:
+            print "Couldn't find problem %d" % (self.id,)
+        return resp.content
+
+    def _parse_problem(self, html):
+        bs = bs4.BeautifulSoup(html)
+        self.title = self._parse_header(bs.h2.text)
+        self.publication_date = self._parse_info(
+            bs.find("div", attrs={"class": "info"}).span.text,
+        )
+        self.content = self._parse_content(
+            bs.find("div", attrs={"class": "problem_content"}).text,
+        )
+
+    def _parse_header(self, header):
+        return header.strip()
+
+    def _parse_info(self, info):
+        return info.strip().split(";")[0]
+
+    def _parse_content(self, content):
+        return content.strip()
+
+    def create_python_stub(self):
+        python_module_path = self._py_module_path()
+        if os.path.isfile(python_module_path):
+            raise IOError("Module %s already exists." % (python_module_path,))
+        with codecs.open(python_module_path, "w", "utf-8-sig") as module:
+            code = PYTHON_MODULE.render(
+                id="%0.3d" % (self.id,),
+                title=self.title,
+                publication_date=self.publication_date,
+                content=self._format_content(),
+            )
+            module.write("# -*- coding: utf-8 -*-\n")
+            module.write(code)
+
+    def _py_module_path(self):
+        return os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            "src",
+            "python",
+            "problem%0.3d.py" % (self.id,),
+        )
+
+    def create_c_stub(self):
+        c_module_path = self._c_module_path()
+        c_header_path = self._c_header_path()
+        if os.path.isfile(c_module_path):
+            raise IOError("Module %s already exists." % (c_module_path,))
+        if os.path.isfile(c_header_path):
+            raise IOError("Header %s already exists." % (c_header_path,))
+        with codecs.open(c_module_path, "w", "utf-8-sig") as module:
+            code = C_MODULE.render(
+                id="%0.3d" % (self.id,),
+                title=self.title,
+                publication_date=self.publication_date,
+                content=self._format_content(),
+            )
+            module.write(code)
+        with codecs.open(c_header_path, "w", "utf-8-sig") as header:
+            code = C_HEADER.render(
+                id="%0.3d" % (self.id,),
+                title=self.title,
+                publication_date=self.publication_date,
+                content=self._format_content(),
+            )
+            header.write(code)
+
+    def _c_module_path(self):
+        return os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            "src",
+            "c",
+            "Problem%0.3d.c" % (self.id,),
+        )
+
+    def _c_header_path(self):
+        return os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            "include",
+            "c",
+            "ProjectEuler",
+            "Problem%0.3d.h" % (self.id,),
+        )
+
+    def _format_content(self):
+        lines = self.content.split(u"\n")
+        text = u" ".join(lines)
+        wrapped_text = textwrap.wrap(text, width=77)
+        return [line.encode("utf-8") for line in wrapped_text]
+
+if __name__ == "__main__":
+    arguments = docopt(__doc__, version="Project Euler v0.1")
+    problem_id = arguments["PROBLEM_ID"]
+    problem = Problem(problem_id)
+    print "Retrieving problem %s." % (problem_id,)
+    problem.get()
+    if arguments["python"]:
+        print "Creating Python module stub."
+        problem.create_python_stub()
+    if arguments["c"]:
+        print "Creating C module and header stubs."
+        problem.create_c_stub()
