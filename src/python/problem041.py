@@ -9,10 +9,29 @@
 # digits 1 to n exactly once. For example, 2143 is a 4-digit pandigital and is
 # also prime. What is the largest n-digit pandigital prime that exists?
 
-import projecteuler as pe
+import util
+
+
+def pandigital_prime(n_digits):
+    if n_digits % 2 == 0:
+        start = int(str(n_digits) * n_digits) + 1
+    else:
+        start = int(str(n_digits) * n_digits)
+    end = 10**(n_digits - 1)
+    digits = set("".join(str(d) for d in xrange(1, n_digits + 1)))
+    for i in xrange(start, end, -2):
+        if set(str(i)) == digits:
+            if util.is_prime(i):
+                return i
+
 
 def main():
-    pass
+    pd = None
+    for i in xrange(7, 0, -1):
+        pd = pandigital_prime(i)
+        if pd:
+            break
+    print "The largest pandigital prime is:", pd
 
 if __name__ == "__main__":
     main()
